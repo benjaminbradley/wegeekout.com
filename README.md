@@ -4,10 +4,10 @@ Source for **We Geek Out!**, Benjamin Bradley's portfolio and blog, built with [
 
 The content comes from two earlier versions of the site:
 
-- **Drupal 6 blog (2011–2015).** Posts were imported from a database dump and keep their old `/content/<slug>/` URLs.
-- **WordPress site (2017–2026).** Pages were imported from a static archive and keep their URLs.
+- **Drupal 6 blog (2011–2015).** Posts keep their old `/content/<slug>/` URLs.
+- **WordPress site (2017–2026).** Pages keep their URLs.
 
-> **Before cutover:** the live site is still the static WordPress archive in `docs/`, served straight from the `main` branch. The Astro site builds to `dist/` and is not live yet. See [DEPLOY.md](DEPLOY.md).
+The migration was done in November 2026. The one-time import tools were removed afterwards and can be found in git history (commit `ddd4ea1`). `planning/` records the decisions made along the way.
 
 ## Quick start
 
@@ -39,15 +39,16 @@ src/
     404.astro
   layouts/Base.astro   header, nav, footer, dark-mode script
   components/          ThemeToggle, PostList, TagCloud
-  styles/global.css    Tailwind + styles for legacy post markup
-  data/drupal.json     generated: tag URLs and legacy redirects
+  styles/global.css    theme, plus styles for legacy post markup
+  data/drupal.json     old Drupal tag URLs and redirects for old URLs
 public/            copied as-is: images, CNAME
   sites/wegeekout.com/files/   Drupal-era images (URLs kept)
   wp-content/uploads/          WordPress-era images (URLs kept)
-scripts/           import, recovery and checking tools (see below)
-planning/          migration notes and review decisions
-docs/              the old static WordPress archive, live until cutover
-astro.config.mjs   site config and redirects for old URLs
+scripts/
+  check-links.mjs  `npm run check`
+  legacy-urls.txt  old public URLs that must keep working
+planning/          migration notes and decisions (historical)
+astro.config.mjs   site config and redirects
 ```
 
 ## Writing a new blog post
@@ -121,21 +122,14 @@ To move a URL, add `'/old-path': '/new-path/'` to `redirects` in `astro.config.m
 
 ## Deploying
 
-Pushing to `main` deploys via GitHub Actions (`.github/workflows/deploy.yml`) once cutover is done. Until then, the workflow can only be started manually. See [DEPLOY.md](DEPLOY.md).
+Every push to `main` builds the site and deploys it to GitHub Pages via GitHub Actions (`.github/workflows/deploy.yml`). Progress shows in the repo's **Actions** tab. To redeploy without a change, use **Run workflow** there.
 
-## Migration tools (historical)
+The Action runs `npm run check` after building and won't deploy if links are broken or an old URL disappears. Run `npm run build && npm run check` locally before pushing to catch that early.
 
-These produced the current content. The content files are now the source of truth.
+- **Repo settings:** Settings → Pages → Source must be **GitHub Actions**, with the custom domain `wegeekout.com` and **Enforce HTTPS** on.
+- **DNS:** the domain's `A`/`AAAA` records point at GitHub Pages (185.199.108–111.153), and `www` is a CNAME to `benjaminbradley.github.io`.
+- **Preview address:** the site uses root-relative URLs, so `benjaminbradley.github.io/wegeekout.com/` won't render correctly. Use the custom domain.
 
-| Script | Purpose |
-|---|---|
-| `scripts/load_mysql_dump.py <dump.sql> .work/d6.sqlite` | Loads the Drupal MySQL dump into SQLite (no MySQL needed) |
-| `scripts/migrate-drupal.mjs` | Drupal nodes → `src/content/blog` / `pages`, plus `src/data/drupal.json`. Per-post decisions live at the top (`PURGE`, `PUBLISH_DRAFTS`, `MD_EDITS`, `FIXUPS`). |
-| `scripts/import-wp-pages.mjs` | Pages from the `docs/` archive → `src/content` |
-| `scripts/lib/html-to-md.mjs` | The shared legacy HTML → Markdown converter |
-| `scripts/wayback-fetch.sh` | Run on a machine with internet access: recovers missing images, the old Drupal theme and archived copies of dead links from archive.org into `public/` and `.work/` |
-| `scripts/check-links.mjs` | `npm run check` |
+## Privacy
 
-**Warning:** the import scripts overwrite their output files. Re-running them throws away any hand edits made to the content since. Don't re-run them unless you mean to regenerate.
-
-**Privacy:** the Drupal/WordPress database dumps and `.work/` (git-ignored) contain password hashes, sessions and email addresses. This repository is public, so they must never be committed.
+The repository is public. Never commit the old database dumps or anything else holding password hashes, sessions, private email addresses or calendars. `.work/` is git-ignored for local scratch files like these.

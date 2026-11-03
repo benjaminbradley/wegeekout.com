@@ -1,5 +1,7 @@
 # Intake review: Drupal 6 content + Astro proposal
 
+> **Historical record.** The migration is complete. Scripts, `docs/` and `.work/` paths mentioned below were removed after the migration; the tools are in git history (commit `ddd4ea1`).
+
 Date: 2026-11-02. Inputs reviewed:
 
 | Input | Location | Notes |
