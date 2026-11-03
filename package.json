@@ -1,0 +1,29 @@
+{
+  "name": "wegeekout",
+  "private": true,
+  "type": "module",
+  "engines": {
+    "node": ">=22.23.4"
+  },
+  "scripts": {
+    "dev": "astro dev",
+    "build": "astro build",
+    "preview": "astro preview",
+    "check": "node scripts/check-links.mjs",
+    "import:drupal": "node scripts/migrate-drupal.mjs",
+    "import:wp": "node scripts/import-wp-pages.mjs"
+  },
+  "dependencies": {
+    "@astrojs/rss": "4.0.19",
+    "@astrojs/sitemap": "3.7.4",
+    "@fontsource-variable/oswald": "5.3.0",
+    "@tailwindcss/typography": "0.5.20",
+    "@tailwindcss/vite": "4.3.3",
+    "astro": "7.4.4",
+    "tailwindcss": "4.3.3"
+  },
+  "devDependencies": {
+    "@mixmark-io/domino": "2.2.0",
+    "turndown": "7.2.4"
+  }
+}

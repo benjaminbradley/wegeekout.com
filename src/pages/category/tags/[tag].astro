@@ -1,0 +1,22 @@
+---
+// Tag pages at their old Drupal URLs, e.g. /category/tags/programming/
+import Base from '../../../layouts/Base.astro';
+import PostList from '../../../components/PostList.astro';
+import { getPosts, tagPath } from '../../../lib/content';
+
+export async function getStaticPaths() {
+  const posts = await getPosts();
+  const tags = [...new Set(posts.flatMap((p) => p.data.tags))];
+  return tags.map((tag) => ({
+    params: { tag: tagPath(tag).split('/').filter(Boolean).pop() },
+    props: { tag, posts: posts.filter((p) => p.data.tags.includes(tag)) },
+  }));
+}
+
+const { tag, posts } = Astro.props;
+---
+<Base title={`Tag: ${tag}`}>
+  <h1 class="mb-8 text-3xl font-semibold">Posts tagged “{tag}”</h1>
+  <PostList posts={posts} />
+  <p class="mt-8 text-sm"><a href="/blog/" class="text-accent hover:underline">← All posts</a></p>
+</Base>

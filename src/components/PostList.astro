@@ -1,0 +1,28 @@
+---
+import type { CollectionEntry } from 'astro:content';
+import { formatDate, tagPath } from '../lib/content';
+
+interface Props { posts: CollectionEntry<'blog'>[]; }
+const { posts } = Astro.props;
+const years = [...new Set(posts.map((p) => p.data.pubDate.getFullYear()))];
+---
+{years.map((y) => (
+  <section class="mb-10">
+    <h2 class="mb-2 border-b border-line pb-1 text-xl font-semibold text-muted">{y}</h2>
+    <ul class="divide-y divide-line">
+      {posts.filter((p) => p.data.pubDate.getFullYear() === y).map((p) => (
+        <li class="py-4">
+          <div class="flex flex-wrap items-baseline justify-between gap-x-4">
+            <a href={p.data.path} class="font-display text-xl font-medium text-accent hover:text-accent-strong">{p.data.title}</a>
+            <time class="text-sm text-muted" datetime={p.data.pubDate.toISOString()}>{formatDate(p.data.pubDate)}</time>
+          </div>
+          {p.data.draft && <span class="mt-1 inline-block rounded bg-amber-200 px-1.5 text-xs text-amber-900">draft</span>}
+          {p.data.description && <p class="mt-1 font-serif text-[0.95rem]">{p.data.description}</p>}
+          {p.data.tags.length > 0 && (
+            <p class="mt-2 flex flex-wrap gap-1.5">{p.data.tags.map((t) => <a href={tagPath(t)} class="tag-chip">{t}</a>)}</p>
+          )}
+        </li>
+      ))}
+    </ul>
+  </section>
+))}

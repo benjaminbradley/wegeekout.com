@@ -1,0 +1,19 @@
+---
+// Tag cloud, like the old Drupal sidebar (tagadelic): bigger = more posts.
+import type { CollectionEntry } from 'astro:content';
+import { tagPath } from '../lib/content';
+
+interface Props { posts: CollectionEntry<'blog'>[]; }
+const counts = new Map<string, number>();
+for (const p of Astro.props.posts) for (const t of p.data.tags) counts.set(t, (counts.get(t) ?? 0) + 1);
+const max = Math.max(1, ...counts.values());
+const tags = [...counts].sort((a, b) => a[0].localeCompare(b[0]));
+const size = (n: number) => (0.8 + 0.7 * Math.log(n) / Math.log(max || 2)).toFixed(2);
+---
+<nav aria-label="Tags" class="rounded-lg border border-line p-4 leading-loose">
+  <h2 class="mb-1 text-sm font-semibold uppercase tracking-wider text-muted">Tags</h2>
+  {tags.map(([t, n]) => (
+    <a href={tagPath(t)} class="mr-3 inline-block text-accent hover:text-accent-strong hover:underline"
+      style={`font-size:${size(n)}rem`} title={`${n} post${n === 1 ? '' : 's'}`}>{t}</a>
+  ))}
+</nav>

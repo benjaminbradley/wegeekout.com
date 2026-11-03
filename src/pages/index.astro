@@ -1,0 +1,63 @@
+---
+// Home page: the "geek·out" definition (body of home.md), the portfolio cards
+// (home.md frontmatter), and the latest blog posts.
+import { getEntry, render } from 'astro:content';
+import Base from '../layouts/Base.astro';
+import { getPosts, formatDate } from '../lib/content';
+
+const home = await getEntry('pages', 'home');
+if (!home) throw new Error('src/content/pages/home.md is missing');
+const { Content } = await render(home);
+const { portfolio } = home.data;
+const recent = (await getPosts()).filter((p) => !p.data.draft).slice(0, 5);
+const isExternal = (href: string) => /^https?:/.test(href);
+---
+<Base description={home.data.description}>
+  <h1 class="mb-6 text-3xl font-semibold sm:text-4xl">{home.data.title}</h1>
+  <div class="prose max-w-none">
+    <Content />
+  </div>
+
+  {portfolio && (
+    <section class="mt-14">
+      <h2 class="text-2xl font-semibold sm:text-3xl">{portfolio.heading}</h2>
+      {portfolio.intro && <p class="mt-2 font-serif text-lg text-muted">{portfolio.intro}</p>}
+      <ul class="mt-6 grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
+        {portfolio.projects.map((p) => (
+          <li>
+            <a href={p.href} rel={isExternal(p.href) ? 'noopener' : undefined}
+              class="group flex h-full flex-col overflow-hidden rounded-lg border border-line bg-panel transition hover:-translate-y-0.5 hover:border-accent hover:shadow-md">
+              {p.image ? (
+                <img src={p.image} alt="" loading="lazy" width="300" height="200"
+                  class="aspect-[3/2] w-full object-cover" />
+              ) : (
+                <div class="site-banner aspect-[3/2] w-full" aria-hidden="true"></div>
+              )}
+              <div class="flex flex-1 flex-col p-4">
+                <h3 class="text-lg font-semibold leading-snug text-accent group-hover:text-accent-strong">
+                  {p.title}{isExternal(p.href) && <span class="ml-1 text-sm" aria-label="(external)">↗</span>}
+                </h3>
+                <p class="mt-1 font-serif text-[0.95rem] text-muted">{p.blurb}</p>
+              </div>
+            </a>
+          </li>
+        ))}
+      </ul>
+    </section>
+  )}
+
+  <section class="mt-14">
+    <h2 class="text-2xl font-semibold sm:text-3xl">Blog</h2>
+    <p class="mt-2 font-serif text-lg">
+      Looking for my older writing? <a href="/blog/" class="text-accent underline underline-offset-2 hover:text-accent-strong">Browse the old blog entries</a> – posts from 2011 onward about programming, games, science, parenting and more.
+    </p>
+    <ul class="mt-5 divide-y divide-line border-y border-line">
+      {recent.map((p) => (
+        <li class="flex flex-wrap items-baseline justify-between gap-x-4 py-2.5">
+          <a href={p.data.path} class="font-serif text-lg text-accent hover:text-accent-strong hover:underline">{p.data.title}</a>
+          <time class="text-sm text-muted" datetime={p.data.pubDate.toISOString()}>{formatDate(p.data.pubDate)}</time>
+        </li>
+      ))}
+    </ul>
+  </section>
+</Base>

@@ -1,0 +1,21 @@
+---
+import Base from '../layouts/Base.astro';
+// Same web3forms setup as the WordPress archive (docs/contact-me/). The access key
+// is public by design; restrict it to wegeekout.com in the web3forms dashboard.
+const accessKey = 'b0084936-be25-4f84-a2e6-d7122d1a9c4d';
+const field = 'mt-1 block w-full rounded-md border border-line bg-transparent px-3 py-2 focus:outline-none focus:ring-2 focus:ring-accent';
+---
+<Base title="Contact Me" description="Get in touch with Benjamin Bradley.">
+  <h1 class="mb-4 text-3xl font-semibold sm:text-4xl">Contact Me</h1>
+  <p class="mb-8 font-serif text-lg">Drop me a line and let me know what’s on your mind.</p>
+  <form action="https://api.web3forms.com/submit" method="POST" class="max-w-xl space-y-5">
+    <input type="hidden" name="access_key" value={accessKey} />
+    <input type="hidden" name="from_name" value="wegeekout.com contact form" />
+    <input type="checkbox" name="botcheck" class="hidden" style="display:none" tabindex="-1" autocomplete="off" />
+    <label class="block">Your Name (required)<input type="text" name="name" required class={field} /></label>
+    <label class="block">Your Email (required)<input type="email" name="email" required class={field} /></label>
+    <label class="block">Subject<input type="text" name="subject" class={field} /></label>
+    <label class="block">Your Message (required)<textarea name="message" rows="10" maxlength="2000" required class={field}></textarea></label>
+    <button type="submit" class="rounded-md bg-accent px-6 py-2 font-display tracking-wide text-panel hover:opacity-90">Send</button>
+  </form>
+</Base>

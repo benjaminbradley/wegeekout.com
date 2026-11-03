@@ -1,0 +1,158 @@
+@import "tailwindcss";
+@import "@fontsource-variable/oswald";
+@plugin "@tailwindcss/typography";
+
+/* Dark mode follows a .dark class on <html> (set before first paint in Base.astro). */
+@custom-variant dark (&:where(.dark, .dark *));
+
+/* ---- Palette: teal from the old Drupal "bloggrail" theme, banner blues ---- */
+:root {
+  --page: #e4eff1;        /* teal-tinted page background */
+  --panel: #ffffff;       /* content panel */
+  --ink: #1f2a30;
+  --muted: #5a6a71;
+  --accent: #1f6b7a;      /* old theme teal */
+  --accent-strong: #154f5a;
+  --line: #cfe0e4;
+  --chip: #e1eef1;
+  --banner-top: #335d8c;  /* banner gradient, sampled from wegeekout.gif */
+  --banner-bottom: #98a2ad;
+  color-scheme: light;
+}
+.dark {
+  --page: #0c181c;
+  --panel: #14242a;
+  --ink: #dce6e9;
+  --muted: #93a6ac;
+  --accent: #6cc5d3;
+  --accent-strong: #9adbe5;
+  --line: #27404a;
+  --chip: #1d343b;
+  color-scheme: dark;
+}
+
+@theme inline {
+  --color-page: var(--page);
+  --color-panel: var(--panel);
+  --color-ink: var(--ink);
+  --color-muted: var(--muted);
+  --color-accent: var(--accent);
+  --color-accent-strong: var(--accent-strong);
+  --color-line: var(--line);
+  --color-chip: var(--chip);
+  --font-display: "Oswald Variable", "Arial Narrow", Impact, sans-serif;
+  --font-serif: Georgia, "Times New Roman", serif;
+}
+
+@layer base {
+  body { background: var(--page); color: var(--ink); }
+  h1, h2, h3, h4 { font-family: var(--font-display); letter-spacing: 0.01em; }
+}
+
+@layer components {
+  /* ---- Header: the original 1000×100 banner, gradient-extended for wide screens ---- */
+  .site-banner {
+    background:
+      url("/images/theme/banner.gif") center top / auto 100% no-repeat,
+      linear-gradient(var(--banner-top), #466a92 25%, #607b9a 50%, #7d90a4 75%, var(--banner-bottom));
+  }
+  @media (max-width: 640px) {
+    .site-banner { background-position: left top, 0 0; }
+  }
+  .site-title {
+    font-family: var(--font-display);
+    color: #fff;
+    text-shadow: 0 1px 2px rgb(0 0 0 / 45%), 0 0 12px rgb(20 40 70 / 50%);
+  }
+  .nav-tab {
+    font-family: var(--font-display);
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    color: #fff;
+    background: rgb(255 255 255 / 14%);
+    border: 1px solid rgb(255 255 255 / 25%);
+    text-shadow: 0 1px 1px rgb(0 0 0 / 40%);
+  }
+  .nav-tab:hover { background: rgb(255 255 255 / 26%); }
+  .nav-tab[aria-current="page"] { background: var(--panel); color: var(--accent); text-shadow: none; }
+
+  /* ---- Long-form text ---- */
+  .prose {
+    --tw-prose-body: var(--ink);
+    --tw-prose-headings: var(--ink);
+    --tw-prose-links: var(--accent);
+    --tw-prose-bold: var(--ink);
+    --tw-prose-counters: var(--muted);
+    --tw-prose-bullets: var(--muted);
+    --tw-prose-hr: var(--line);
+    --tw-prose-quotes: var(--ink);
+    --tw-prose-quote-borders: var(--accent);
+    --tw-prose-captions: var(--muted);
+    --tw-prose-code: var(--ink);
+    --tw-prose-th-borders: var(--line);
+    --tw-prose-td-borders: var(--line);
+    font-family: var(--font-serif);
+    font-size: 1.125rem;
+  }
+  .prose a { text-underline-offset: 0.15em; }
+  .prose a:hover { color: var(--accent-strong); }
+  .prose :where(h2, h3, h4) { font-weight: 600; }
+
+  /* Code: Shiki writes light colors inline and dark ones as --shiki-dark vars. */
+  .prose pre.astro-code { border: 1px solid var(--line); }
+  .dark .astro-code, .dark .astro-code span {
+    color: var(--shiki-dark) !important;
+    background-color: var(--shiki-dark-bg) !important;
+  }
+
+  /* ---- Legacy post markup (from the Drupal/WordPress imports) ---- */
+  .prose img.float-right { float: right; margin: 0.25em 0 1em 1.5em; }
+  .prose img.float-left { float: left; margin: 0.25em 1.5em 1em 0; }
+  .prose li > img.float-right { margin-top: 0; }
+  .prose .post-body::after { content: ""; display: table; clear: both; }
+  .prose small, .prose .text-small { font-size: 0.8em; }
+  .prose .text-large { font-size: 1.25em; }
+  .prose .text-center { text-align: center; }
+  .prose .text-right { text-align: right; }
+  .prose pre.ascii-art {
+    background: transparent; color: inherit; border: 1px solid var(--line);
+    width: fit-content; max-width: 100%;
+  }
+  /* Pull quotes from the old Drupal theme (custom.css .popquote). */
+  .prose .popquote {
+    width: 18rem; max-width: 45%; padding: 0.75rem; margin: 0.25rem 1.5rem 1rem 0;
+    border: 1px solid var(--accent); font-style: italic; font-size: 1.15em; line-height: 1.5;
+  }
+  .prose .popquote.float-left { float: left; }
+  .prose .popquote.float-right { float: right; margin: 0.25rem 0 1rem 1.5rem; }
+  .prose iframe { max-width: 100%; }
+  .prose table { display: block; overflow-x: auto; }
+
+  @media (max-width: 480px) {
+    .prose img.float-right, .prose img.float-left { float: none; display: block; margin: 1em auto; }
+    .prose .popquote.float-left, .prose .popquote.float-right { float: none; width: auto; max-width: none; margin: 1em 0; }
+  }
+
+  /* ---- Home page: the "geek·out" dictionary entry ---- */
+  .definition {
+    border-left: 4px solid var(--accent);
+    padding: 0.25rem 0 0.25rem 1.25rem;
+  }
+  .definition > p:first-child { color: var(--muted); font-style: italic; }
+  .definition > p:first-child strong {
+    font-family: var(--font-display); font-style: normal; font-size: 2rem; font-weight: 600;
+    color: var(--ink); letter-spacing: 0.02em; line-height: 1.3;
+  }
+  .definition > p:nth-of-type(2) {
+    font-family: var(--font-display); text-transform: uppercase; letter-spacing: 0.08em;
+    font-size: 0.85rem; color: var(--muted); margin-bottom: 0.25rem;
+  }
+  .definition > ol:last-of-type { color: var(--muted); }
+
+  /* ---- Tags ---- */
+  .tag-chip {
+    display: inline-block; border-radius: 9999px; padding: 0.1rem 0.65rem;
+    background: var(--chip); color: var(--accent); font-size: 0.8rem; line-height: 1.6;
+  }
+  .tag-chip:hover { background: var(--accent); color: var(--panel); }
+}

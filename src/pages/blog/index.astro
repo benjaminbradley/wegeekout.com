@@ -1,0 +1,18 @@
+---
+import Base from '../../layouts/Base.astro';
+import PostList from '../../components/PostList.astro';
+import TagCloud from '../../components/TagCloud.astro';
+import { getPosts } from '../../lib/content';
+
+const posts = await getPosts();
+---
+<Base title="Blog" description="Posts from We Geek Out!, 2011 onward.">
+  <div class="mb-8 flex flex-wrap items-baseline justify-between gap-4">
+    <h1 class="text-3xl font-semibold sm:text-4xl">Blog</h1>
+    <a href="/rss.xml" class="text-sm text-accent hover:underline">RSS feed</a>
+  </div>
+  <div class="grid gap-10 lg:grid-cols-[1fr_14rem]">
+    <div class="order-2 lg:order-1"><PostList posts={posts} /></div>
+    <aside class="order-1 lg:order-2"><div class="lg:sticky lg:top-6"><TagCloud posts={posts} /></div></aside>
+  </div>
+</Base>

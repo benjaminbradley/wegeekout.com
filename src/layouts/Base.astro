@@ -1,0 +1,69 @@
+---
+import '../styles/global.css';
+import ThemeToggle from '../components/ThemeToggle.astro';
+
+interface Props { title?: string; description?: string; }
+const { title, description = 'We Geek Out! – projects and writing by Benjamin Bradley.' } = Astro.props;
+const siteName = 'We Geek Out!';
+const fullTitle = title ? `${title} – ${siteName}` : siteName;
+const canonical = new URL(Astro.url.pathname, Astro.site);
+const nav = [
+  { href: '/', label: 'Portfolio' },
+  { href: '/blog/', label: 'Blog' },
+  { href: '/contact-me/', label: 'Contact Me' },
+];
+const here = Astro.url.pathname;
+const isActive = (href: string) => (href === '/' ? here === '/' : here.startsWith(href));
+---
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>{fullTitle}</title>
+    <meta name="description" content={description} />
+    <link rel="canonical" href={canonical} />
+    <link rel="icon" type="image/png" href="/favicon.png" />
+    <link rel="alternate" type="application/rss+xml" title={siteName} href="/rss.xml" />
+    <link rel="sitemap" href="/sitemap-index.xml" />
+    <script is:inline>
+      // Runs before paint so dark-mode visitors never see a light flash.
+      (() => {
+        let t = null;
+        try { t = localStorage.getItem('theme'); } catch {}
+        const dark = t ? t === 'dark' : matchMedia('(prefers-color-scheme: dark)').matches;
+        document.documentElement.classList.toggle('dark', dark);
+      })();
+    </script>
+  </head>
+  <body class="min-h-screen antialiased">
+    <a href="#main" class="sr-only focus:not-sr-only">Skip to content</a>
+    <header class="site-banner">
+      <div class="mx-auto flex min-h-[100px] max-w-4xl flex-wrap items-end justify-between gap-x-6 gap-y-2 px-4 pt-5 pb-0">
+        <a href="/" class="site-title self-center pb-3 text-4xl font-semibold tracking-wide sm:text-5xl">{siteName}</a>
+        <div class="flex items-center gap-2 self-end">
+          <nav aria-label="Main">
+            <ul class="flex flex-wrap gap-1.5">
+              {nav.map((n) => (
+                <li>
+                  <a href={n.href} aria-current={isActive(n.href) ? 'page' : undefined}
+                    class="nav-tab block rounded-t-md px-3 py-1.5 text-sm">{n.label}</a>
+                </li>
+              ))}
+            </ul>
+          </nav>
+          <ThemeToggle />
+        </div>
+      </div>
+    </header>
+    <div class="mx-auto max-w-4xl px-0 sm:px-4">
+      <main id="main" class="bg-panel px-5 py-8 shadow-sm sm:rounded-b-xl sm:px-10 sm:py-10">
+        <slot />
+      </main>
+    </div>
+    <footer class="py-8 text-center text-sm text-muted">
+      &copy; {new Date().getFullYear()} <a href="/" class="hover:underline">{siteName}</a>
+      · <a href="/rss.xml" class="hover:underline">RSS</a>
+    </footer>
+  </body>
+</html>

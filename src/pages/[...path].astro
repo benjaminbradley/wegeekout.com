@@ -1,0 +1,55 @@
+---
+// One route for every page and post: each entry's `path` frontmatter is its URL.
+// The home page (path "/") is rendered by index.astro instead.
+import { render } from 'astro:content';
+import Base from '../layouts/Base.astro';
+import { getPosts, getPages, tagPath, formatDate } from '../lib/content';
+
+export async function getStaticPaths() {
+  const entries = [...(await getPosts()), ...(await getPages())];
+  const seen = new Map<string, string>();
+  for (const e of entries) {
+    const other = seen.get(e.data.path);
+    if (other) throw new Error(`Duplicate path ${e.data.path}: ${other} and ${e.collection}/${e.id}`);
+    seen.set(e.data.path, `${e.collection}/${e.id}`);
+  }
+  return entries.filter((e) => e.data.path !== '/').map((entry) => ({
+    params: { path: entry.data.path.replace(/^\/|\/$/g, '') },
+    props: { entry },
+  }));
+}
+
+const { entry } = Astro.props;
+const { Content } = await render(entry);
+const d = entry.data;
+const isPost = entry.collection === 'blog';
+---
+<Base title={d.title} description={d.description}>
+  {d.draft && (
+    <p class="mb-6 rounded-md border border-amber-400 bg-amber-50 px-3 py-2 text-sm text-amber-900 dark:bg-amber-950 dark:text-amber-200">
+      Draft – visible only in local preview, not on the live site.
+    </p>
+  )}
+  <article class="prose max-w-none">
+    <header class="not-prose mb-8 border-b border-line pb-5">
+      <h1 class="text-3xl font-semibold leading-tight sm:text-4xl">{d.title}</h1>
+      {isPost && 'pubDate' in d && (
+        <p class="mt-3 text-sm text-muted">
+          <time datetime={d.pubDate.toISOString()}>{formatDate(d.pubDate)}</time>
+          {d.legacy?.originalDrupalDate && <> · first published {formatDate(d.legacy.originalDrupalDate)}</>}
+        </p>
+      )}
+      {isPost && 'tags' in d && d.tags.length > 0 && (
+        <p class="mt-3 flex flex-wrap gap-1.5">
+          {d.tags.map((t) => <a href={tagPath(t)} class="tag-chip">{t}</a>)}
+        </p>
+      )}
+    </header>
+    <div class="post-body">
+      <Content />
+    </div>
+  </article>
+  {isPost && (
+    <p class="mt-12 border-t border-line pt-5 text-sm"><a href="/blog/" class="text-accent hover:underline">← All posts</a></p>
+  )}
+</Base>

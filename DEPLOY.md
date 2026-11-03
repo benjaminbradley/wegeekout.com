@@ -1,78 +1,35 @@
-# Deploying the wegeekout.com archive
+# Deploying wegeekout.com
 
-What's left after this repo is pushed to `github.com/benjaminbradley/wegeekout.com`.
-The site is in `docs/`, and `docs/CNAME` already says `wegeekout.com`.
+The site deploys to GitHub Pages from `github.com/benjaminbradley/wegeekout.com`.
 
-## 1. Push
+- **Now (before cutover):** Pages serves the static WordPress archive in `docs/` from the `main` branch ("Deploy from a branch"). The Astro site isn't live.
+- **After cutover:** a GitHub Actions workflow (`.github/workflows/deploy.yml`) builds Astro and deploys `dist/` on every push to `main`.
 
-```sh
-git push -u origin main
-```
+## Cutover from `docs/` to Astro
 
-## 2. Turn on GitHub Pages
+1. **Commit and push** the Astro work to `main`. This doesn't change the live site; Pages keeps serving `docs/`.
+2. **Switch the source:** repo → Settings → Pages → Build and deployment → Source: **GitHub Actions**. The custom domain setting stays as it is.
+3. **Deploy straight away:** Actions tab → "Deploy Astro site to GitHub Pages" → **Run workflow** on `main`. Wait for both jobs to go green (about a minute).
+4. **Check the live site:**
+   - The home page, `/blog/`, a few old posts (e.g. `/content/happiness-math/`), a tag page (`/category/tags/programming/`), `/contact-me/`, and a redirect (`/node/18` should land on Happiness Math).
+   - Submit a test message through the contact form. If the web3forms key is domain-restricted, `wegeekout.com` must be allowed.
+   - Locally, `npm run build && npm run check` must pass before you push.
+5. **Turn on automatic deploys:** in `.github/workflows/deploy.yml`, change the trigger to:
 
-Repo → **Settings → Pages**:
+   ```yaml
+   on:
+     push:
+       branches: [main]
+     workflow_dispatch:
+   ```
 
-1. **Source:** *Deploy from a branch*
-2. **Branch:** `main`, folder `/docs` → **Save**
-3. **Custom domain:** should show `wegeekout.com` (read from `docs/CNAME`). If it's empty, type it in and save.
-4. Leave **Enforce HTTPS** for now. It becomes available after DNS works (step 4).
+   Commit and push. From now on, every push to `main` redeploys.
+6. **Later, once you're happy:** delete `docs/` in a commit. All its pages and images now live in `src/content/` and `public/`. (`scripts/import-wp-pages.mjs` reads `docs/` and will stop working, which is expected.) Also cancel the old hosting, after taking a final backup.
 
-Check the deploy: open the **Actions** tab and look for a green "pages build and deployment" run. Until DNS points at GitHub, you can preview the site at
-`https://benjaminbradley.github.io/wegeekout.com/`. That preview works only because every link in the archive is relative.
+**Rollback:** Settings → Pages → Source: *Deploy from a branch*, `main`, `/docs`. This works for as long as `docs/` exists.
 
-## 3. (Recommended) Verify the domain with GitHub
+## Notes
 
-Account → **Settings → Pages → Add a domain** → `wegeekout.com`. GitHub gives you a TXT record (`_github-pages-challenge-benjaminbradley.wegeekout.com`). Add it at your DNS provider, then click **Verify**. This stops anyone else's repo from claiming your domain.
-
-## 4. Point DNS at GitHub
-
-At your DNS provider for `wegeekout.com`:
-
-**Before changing anything:**
-- A day ahead, lower the TTL on the existing records (for example to 300 s) so the switch takes effect quickly.
-- Keep a copy of the current records in case you need to roll back.
-- Don't touch MX/email records.
-- The old site sits behind Cloudflare. If these records are in Cloudflare, set them to **DNS only** (grey cloud) while GitHub issues the certificate.
-
-**Remove** the existing `A`/`AAAA` records for `wegeekout.com` (and `www`) that point at the old WordPress host.
-
-**Add:**
-
-| Type  | Name  | Value                          |
-|-------|-------|--------------------------------|
-| A     | @     | 185.199.108.153                |
-| A     | @     | 185.199.109.153                |
-| A     | @     | 185.199.110.153                |
-| A     | @     | 185.199.111.153                |
-| AAAA  | @     | 2606:50c0:8000::153            |
-| AAAA  | @     | 2606:50c0:8001::153            |
-| AAAA  | @     | 2606:50c0:8002::153            |
-| AAAA  | @     | 2606:50c0:8003::153            |
-| CNAME | www   | benjaminbradley.github.io.           |
-
-With the `www` CNAME in place, GitHub redirects `www.wegeekout.com` to `wegeekout.com` automatically.
-
-If the domain has **CAA** records, one of them must allow `letsencrypt.org`. Otherwise GitHub can't issue the HTTPS certificate.
-
-Check propagation:
-
-```sh
-dig +short wegeekout.com
-```
-
-## 5. Turn on HTTPS
-
-Once DNS resolves to GitHub, go back to **Settings → Pages**. The DNS check should go green, and GitHub requests a Let's Encrypt certificate, which can take from a few minutes up to about an hour. Then tick **Enforce HTTPS**.
-
-If the certificate seems stuck, clear the Custom domain field, save, re-enter `wegeekout.com`, and save again.
-
-## 6. Afterwards
-
-- Click through the live site and compare it with the old one. Old URLs keep the same paths.
-- **Before you shut down the WordPress host**, take a final backup: a database dump plus all of `wp-content/`. The uploads folder may contain files that aren't in this archive.
-- Cancel the old hosting only once the new site has run fine for a while.
-
-## 7. Contact form (web3forms)
-
-The form on `/contact-me/` posts to web3forms using the access key embedded in the page. After the site is live, check the web3forms dashboard: if the key is restricted by domain, allow `wegeekout.com`, then send a test message.
+- The site uses root-relative URLs, so the `benjaminbradley.github.io/wegeekout.com/` preview address won't render correctly. Use the custom domain.
+- `public/CNAME` is kept for reference. With Actions deploys, the custom domain comes from the repo settings.
+- Pages has no server-side redirects. Old URLs are handled by small redirect pages that Astro generates (see `redirects` in `astro.config.mjs`).
