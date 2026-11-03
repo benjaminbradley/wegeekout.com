@@ -1,9 +1,8 @@
 name: Deploy Astro site to GitHub Pages
 
-# Manual-only until cutover. The live site is still served from docs/ on the
-# main branch. At cutover: Settings -> Pages -> Source: "GitHub Actions",
-# then add `push: branches: [main]` below.
 on:
+ push:
+   branches: [main]
   workflow_dispatch:
 
 permissions:
